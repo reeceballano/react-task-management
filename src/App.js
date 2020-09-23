@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import Task from './components/Task';
-import Add from './components/Add';
+import FilterSection from './components/sections/FilterSection';
+import TaskSection from './components/sections/TaskSection';
+import AddTaskSection from './components/sections/AddTaskSection';
+import AppTitleSection from './components/sections/AppTitleSection';
 
 const App = () => {
     const [tasks, setTasks] = useState([
-        { id: 1, name: 'Task 1', status: false },
-        { id: 2, name: 'Task 2', status: false },
-        { id: 3, name: 'Task 3', status: true },
-        { id: 4, name: 'Task 4', status: true }
+        { id: 1, name: 'Learn React', status: true },
+        { id: 2, name: 'Create App', status: false },
+        { id: 3, name: 'Deploy', status: false },
     ]);
 
     const [task, setTask] = useState('');
 
-    const [filteredTasks, setFilter] = useState(tasks);
+    const [filterBy, setFilterBy] = useState('all');
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -39,63 +40,40 @@ const App = () => {
         const task = [...tasks].find(item => item.id === id);
 
         if(task) {
-            if(task.status === true) {
-                task.status = false;
-            } else {
-                task.status = true;
-            }
+            task.status = !task.status;
         }
 
         setTasks(task => [...task])
     };
 
     const filterTasks = (status) => {
-        switch(status) {
-            case 'all':
-                setFilter(tasks);
-                break;
+        setFilterBy(status);
+    }
 
-            case 'completed':
-                const completed = tasks.filter(item => item.status === true);
-                setFilter(completed);
-                break;
-
-            case 'notDone':
-                const notDone = tasks.filter(item => item.status === false);
-                setFilter(notDone);
-                break;
-
-            default:
-                setFilter(tasks);
-                break;
-
+    const filteredTasks = () => {
+        if(filterBy === 'all') {
+            return tasks.filter(item => item.status === true || item.status === false);
         }
-    };
+
+        if(filterBy === 'completed') {
+            return tasks.filter(item => item.status === true);
+        }
+
+        if(filterBy === 'notDone') {
+            return tasks.filter(item => item.status === false);
+        }
+    }
 
     return(
         <div className="app">
             
-            <section className="app-name">
-                <h2>Task List</h2>
-            </section>
+            <AppTitleSection appTitle='Task Manager' />
+
+            <AddTaskSection task={ task } handleOnchange={ handleOnchange } handleSubmit={ handleSubmit } />
             
-            <section className="add-task">
-                <Add task={ task } handleOnchange={ handleOnchange } handleSubmit={ handleSubmit } />
-            </section>
+            <FilterSection filterTasks={ filterTasks } />
 
-            <section className="filter-tasks">
-                <button onClick={ () => filterTasks('all')}>All</button>
-                <button onClick={ () => filterTasks('completed')}>Completed</button>
-                <button onClick={ () => filterTasks('notDone')}>Not Done</button>
-            </section>
-
-            <section className="task-list">
-                { 
-                    filteredTasks.map(item => {
-                        return <Task key={ item.id } task={ item } removeTask={removeTask} updateTask={updateTask} />
-                    }) 
-                }
-            </section>
+            <TaskSection tasks={ filteredTasks() } updateTask={ updateTask } removeTask={ removeTask } />
 
         </div>
     )
